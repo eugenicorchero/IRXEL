@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRXEL: GRAND LAB OPENING - 31/10/2025</title>
+    <!-- Importación de Fuentes Temáticas desde Google Fonts -->
+    <!-- Press Start 2P para encabezados (CRT/Pixel) -->
+    <!-- Roboto Mono para cuerpo de texto (Terminal/Documento) -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Variables y Reset Básico */
+        :root {
+            --color-bg: #111111;
+            --color-text: #e0e0e0;
+            --color-accent: #39ff14;
+            /* Verde Neón Tóxico */
+            --font-main: 'Roboto Mono', monospace;
+            --font-title: 'Press Start 2P', cursive;
+            --border-style: 1px solid var(--color-accent);
+            --header-height: 80px;
+            --footer-height: 84px;
+            --nav-width-desktop: 180px;
+            /* Reducido para mejor aspecto */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Fuerza ajuste normal en párrafos para evitar que saltos en el HTML fuente
+           provoquen líneas muy cortas en toda la web. */
+        p {
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        /* Regla para mantener comportamiento de texto normal en elementos comunes. Evitamos !important */
+        p,
+        li,
+        a,
+        span,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        div,
+        section,
+        main {
+            white-space: normal;
+            writing-mode: horizontal-tb;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        /* El parche de emergencia fue retirado. Mantendremos tamaños responsivos y márgenes adecuados.
+           Si aparece de nuevo un comportamiento raro, lo investigaremos con DevTools. */
+
+        /* CORRECCIÓN DE LAYOUT: Asegura que el HTML y el Body ocupan el ancho completo para centrar correctamente */
+        html,
+        body {
+            width: 100%;
+            overflow-x: hidden;
+            /* Previene scroll horizontal no deseado */
+            min-width: 320px;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            /* Simula el aspecto de un viejo monitor CRT - reducido para legibilidad */
+            text-shadow: none;
+            /* sombras globales causan que el texto parezca borroso/ilegible */
+            margin: 0;
+            /* Asegurar que no haya margen del body */
+            padding: 0;
+        }
+
+        /* CODE LOCK SCREEN STYLES */
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            font-family: var(--font-main);
+            color: var(--color-accent);
+        }
+
+        .lock-content {
+            max-width: 600px;
+            /* Aumentado para un aspecto más amplio */
+            width: 90%;
+            /* Usa 90% en móviles */
+            padding: 30px;
+            /* Aumentado el padding para más espacio */
+            border: 2px solid var(--color-accent);
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.7);
+        }
+
+        .lock-content h2 {
+            font-family: var(--font-title);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: clamp(0.9em, 4vw, 1.2em);
+            text-shadow: 0 0 5px var(--color-accent);
+        }
+
+        /* Prompt original (se oculta tras el éxito) */
+        .terminal-prompt {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        /* Contenedor de la secuencia de carga */
+        #boot-sequence {
+            display: none;
+            /* Inicialmente oculto */
+            font-size: 0.85em;
+            /* Ajuste clave: Aumentamos la altura máxima para evitar scroll vertical */
+            max-height: 70vh;
+            overflow-y: auto;
+            /* Mantenemos 'auto' como fallback de seguridad */
+            border-top: 1px dashed var(--color-accent);
+            padding-top: 10px;
+            margin-top: 15px;
+        }
+
+        .boot-line {
+            white-space: pre;
+            /* Asegura que se respete el espaciado y la nueva línea */
+            line-height: 1.4;
+            color: #b0ff90;
+        }
+
+        .boot-line.error {
+            color: #ff3914;
+        }
+
+        .boot-line.ok {
+            color: var(--color-accent);
+        }
+
+        .boot-line.final {
+            color: var(--color-text);
+            font-weight: bold;
+        }
+
+
+        .prompt-prefix {
+            font-size: 1em;
+            margin-right: 5px;
+            white-space: nowrap;
+        }
+
+        #password-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: var(--color-accent);
+            font-family: var(--font-main);
+            font-size: 1em;
+            outline: none;
+            padding: 0;
+            caret-color: var(--color-accent);
+            /* Blinking cursor */
+            min-width: 150px;
+        }
+
+        #password-input:focus {
+            border-bottom: 1px solid var(--color-accent);
+        }
+
+        #submit-button {
+            background-color: var(--color-accent);
+            color: var(--color-bg);
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-family: var(--font-title);
+            font-size: 0.7em;
+            margin-left: auto;
+            transition: all 0.1s;
+            text-shadow: none;
+        }
+
+        @media (max-width: 500px) {
+            #submit-button {
+                margin-left: 0;
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .terminal-prompt {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            #password-input {
+                width: 100%;
+                margin-top: 5px;
+                border-bottom: 1px dashed var(--color-accent);
+            }
+
+            /* Ajuste en el lock content para asegurar que el padding no desborde el viewport */
+            .lock-content {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+
+
+        #submit-button:hover {
+            box-shadow: 0 0 5px var(--color-accent), inset 0 0 5px var(--color-bg);
+        }
+
+        #error-message {
+            color: #ff3914;
+            /* Rojo de error */
+            font-size: 0.8em;
+            margin-top: 10px;
+            height: 1.2em;
+            text-align: center;
+        }
+
+        /* LAYOUT PRINCIPAL - GRID para Desktop */
+        .app-container {
+            max-width: 1200px;
+            width: 95%;
+            /* AJUSTE CLAVE: Asegura margen para centrado confiable */
+            margin: 20px auto;
+            /* separación superior para evitar que quede pegado al borde */
+            position: relative;
+            /* evita problemas con elementos posicionados fuera del flujo */
+            /* Centrado horizontal */
+            display: grid;
+            /* Header auto para que el título pueda crecer sin solaparse; footer incluido en la grid */
+            grid-template-columns: var(--nav-width-desktop) 1fr;
+            grid-template-rows: minmax(var(--header-height), auto) 1fr auto;
+            grid-template-areas: "header header" "nav main" "footer footer";
+            min-height: 100vh;
+            border: 2px solid var(--color-accent);
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.6);
+            /* Resplandor neón */
+            animation: flicker 1.5s infinite alternate;
+        }
+
+        /* Helper class for initially hiding main app */
+        .hidden {
+            display: none !important;
+        }
+
+        /* HEADER */
+        header {
+            grid-area: header;
+            text-align: center;
+            padding: 18px 24px;
+            /* más espacio alrededor del header */
+            border-bottom: var(--border-style);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        h1 {
+            font-family: var(--font-title);
+            color: var(--color-accent);
+            font-size: clamp(1rem, 3.2vw, 2rem);
+            /* limitar máximo para evitar solapamientos */
+            text-shadow: 0 0 8px var(--color-accent);
+            line-height: 1.1;
+        }
+
+        header p {
+            font-size: 0.7em;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        /* LOG STAMP */
+        .log-stamp {
+            position: absolute;
+            bottom: 8px; /* pegado al fondo del header */
+            right: 18px;
+            font-size: 0.72em;
+            opacity: 0.65;
+            letter-spacing: 1px;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            backdrop-filter: blur(2px);
+        }
+
+        /* NAVEGACIÓN (MENU) */
+        nav {
+            grid-area: nav;
+            border-right: var(--border-style);
+            padding: 20px 10px;
+            background-color: #1a1a1a;
+            user-select: none;
+        }
+
+        nav h3 {
+            color: var(--color-accent);
+            font-size: 1em;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px dashed var(--color-accent);
+            padding-bottom: 5px;
+            /* Fix para que no se corte el título del menú */
+            word-break: break-all;
+        }
+
+        .nav-list a {
+            display: block;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            color: var(--color-text);
+            text-decoration: none;
+            font-size: 0.9em;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            /* Asegura que los nombres largos no rompan el contenedor */
+            word-wrap: break-word;
+        }
+
+        .nav-list a:hover,
+        .nav-list a.active {
+            background-color: var(--color-accent);
+            color: var(--color-bg);
+            text-shadow: none;
+            box-shadow: 0 0 10px var(--color-accent);
+        }
+
+        .nav-list a::before {
+            content: "> ";
+            color: var(--color-text);
+            margin-right: 5px;
+        }
+
+        .nav-list a.active::before {
+            content: ">> ";
+            color: var(--color-bg);
+        }
+
+
+        /* CONTENIDO PRINCIPAL */
+        main {
+            grid-area: main;
+            padding: 30px;
+            overflow-y: auto;
+            /* Fix: asegura que el contenido pueda fluir dentro de su contenedor */
+            min-width: 0;
+        }
+
+        /* Ocultar secciones no activas */
+        section {
+            display: none;
+            margin-bottom: 40px;
+        }
+
+        section.active {
+            display: block;
+        }
+
+        /* Estilos de Títulos */
+        h2 {
+            font-size: 1.5em;
+            color: var(--color-accent);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            border-left: 5px solid var(--color-accent);
+            padding-left: 10px;
+        }
+
+        h3 {
+            font-size: 1.1em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #b0ff90;
+            /* Verde más suave */
+        }
+
+        /* Estilos de Lista y Enlaces (restos de la versión anterior) */
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 5px 0;
+            border-bottom: 1px dotted rgba(255, 255, 255, 0.2);
+        }
+
+        .list-item-program::before {
+            content: "\2588 ";
+            /* Carácter de bloque para lista */
+            color: var(--color-accent);
+        }
+
+        a {
+            color: var(--color-accent);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: var(--color-text);
+            text-shadow: 0 0 5px var(--color-accent);
+        }
+
+        .alert-box {
+            background-color: #2a0000;
+            border: 2px dashed #ff0000;
+            padding: 15px;
+            margin-top: 20px;
+            color: #ffaaaa;
+        }
+
+        .report-section {
+            background-color: #1e1e1e;
+            padding: 15px;
+            margin-top: 10px;
+            border: var(--border-style);
+        }
+
+        .report-section a {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.8em;
+            text-align: right;
+        }
+
+        .briefing-text p {
+            /* Mostrar texto de forma fluida en la columna: no preservar saltos de línea del HTML */
+            white-space: normal;
+            /* <-- cambiado: pre-wrap estaba forzando saltos de línea según el formato del archivo */
+            overflow-wrap: anywhere;
+            /* permite quiebres seguros en palabras largas */
+            margin-bottom: 15px;
+        }
+
+        /* FOOTER */
+        footer {
+            grid-area: footer;
+            text-align: center;
+            padding: 14px 18px;
+            /* más espacio en el footer */
+            border-top: var(--border-style);
+            font-size: 0.7em;
+            opacity: 0.7;
+            background-color: #1a1a1a;
+            position: static;
+            /* evitar solapamiento en desktop; ahora ocupa su fila en la grid */
+        }
+
+        .footer-mobile {
+            display: none;
+            /* Ocultar en desktop, mostrar en mobile */
+        }
+
+        /* Ajustes específicos para títulos y espaciado en secciones */
+        h2 {
+            margin-top: 8px;
+            margin-bottom: 18px;
+            font-size: clamp(1.1rem, 2.4vw, 1.4rem);
+        }
+
+
+        /* Animación de Flicker/Glitch */
+        @keyframes flicker {
+            0% {
+                box-shadow: 0 0 15px rgba(57, 255, 20, 0.5);
+            }
+
+            5% {
+                box-shadow: 0 0 18px rgba(57, 255, 20, 0.7);
+            }
+
+            10% {
+                box-shadow: 0 0 15px rgba(57, 255, 20, 0.5);
+            }
+
+            20% {
+                box-shadow: 0 0 15px rgba(57, 255, 20, 0.6);
+            }
+
+            100% {
+                box-shadow: 0 0 15px rgba(57, 255, 20, 0.5);
+            }
+        }
+
+        /* MEDIA QUERIES - Diseño Responsivo para Móviles y Tabletas */
+        @media (max-width: 800px) {
+
+            .app-container {
+                /* Quitamos la restricción de ancho para que ocupe todo el espacio en móvil */
+                width: 100%;
+                max-width: none;
+                margin: 0;
+
+                grid-template-columns: 1fr;
+                grid-template-rows: var(--header-height) auto 1fr auto;
+                /* Header, Nav, Main, Footer */
+                grid-template-areas: "header" "nav" "main" "footer";
+                border: none;
+                box-shadow: none;
+                animation: none;
+                min-height: 100vh;
+            }
+
+            /* Contenedor principal sin bordes en móvil (más limpio) */
+            body {
+                padding: 0;
+            }
+
+            header {
+                border-left: var(--border-style);
+                border-right: var(--border-style);
+                margin: 0 10px;
+                /* Separación lateral */
+                border-top: var(--border-style);
+                padding: 14px 12px;
+                /* reducir padding en móviles para ahorrar espacio */
+            }
+
+            .log-stamp {
+                display: none;
+                /* Ocultar en móvil para ahorrar espacio */
+            }
+
+            /* NAVEGACIÓN MOBILE (Menú Plegable) */
+            nav {
+                border: var(--border-style);
+                border-top: none;
+                border-bottom: none;
+                margin: 0 10px;
+                padding: 10px 0;
+                grid-area: nav;
+                background-color: var(--color-bg);
+            }
+
+            nav h3 {
+                display: none;
+                /* Ocultar título del menú */
+            }
+
+            .nav-list {
+                display: flex;
+                flex-wrap: wrap;
+                /* Para que los botones se envuelvan */
+                justify-content: center;
+                gap: 5px;
+            }
+
+            .nav-list a {
+                padding: 8px 12px;
+                flex-grow: 1;
+                /* Ocupa el espacio disponible */
+                max-width: 48%;
+                /* Dos por fila */
+                text-align: center;
+                border: var(--border-style);
+            }
+
+            .nav-list a::before {
+                content: "";
+                margin: 0;
+            }
+
+            /* MAIN CONTENT MOBILE */
+            main {
+                padding: 18px 10px;
+                border-left: var(--border-style);
+                border-right: var(--border-style);
+                margin: 0 10px;
+                padding-bottom: 50px;
+                /* Espacio extra para el footer fijo */
+            }
+
+            /* FOOTER MOBILE (Fijo abajo) */
+            .footer-desktop {
+                display: none;
+            }
+
+            .footer-mobile {
+                display: block;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                z-index: 10;
+                padding: 12px 14px;
+                /* más cómodo en móvil */
+            }
+
+            /* Evita que el footer fijo en móvil cubra el contenido principal */
+            main {
+                padding-bottom: calc(var(--footer-height, 84px) + 20px);
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Pantalla de Bloqueo (Inicialmente visible) -->
+    <div id="code-lock" class="lock-screen">
+        <div class="lock-content">
+            <h2>[IRXEL.OS v1.1] REQUIERE AUTORIZACIÓN</h2>
+            <p id="lock-message">CONSOLA DE ACCESO CLASIFICADO. INGRESE CLAVE DE PROTOCOLO.</p>
+
+            <div id="auth-form">
+                <div class="terminal-prompt">
+                    <span class="prompt-prefix">C:\IRXEL\ACCESS></span>
+                    <input type="password" id="password-input" maxlength="20" placeholder="Código de 14 caracteres">
+                    <button id="submit-button">INICIAR</button>
+                </div>
+                <div id="error-message"></div>
+            </div>
+
+            <div id="boot-sequence">
+                <!-- El código de carga se inyectará aquí -->
+            </div>
+
+        </div>
+    </div>
+
+    <div class="app-container hidden">
+        <header>
+            <h1>IRXEL ENTERPRISES: GRAND LAB OPENING</h1>
+            <p>PROTOCOLO DE ACCESO CLASIFICADO - NIVEL ALPHA</p>
+            <span class="log-stamp">LOG #4-9183 | DTE: 07 OCT 2025</span>
+        </header>
+
+        <!-- Menú de Navegación -->
+        <nav>
+            <h3>[FILE STRUCTURE]</h3>
+            <div class="nav-list">
+                <a class="nav-link active" data-target="briefing">01. Invitación Oficial</a>
+                <a class="nav-link" data-target="protocolo">02. Protocolo Vestuario</a>
+                <a class="nav-link" data-target="programa">03. Programa de Avances</a>
+                <a class="nav-link" data-target="logistica">04. Logística Crítica</a>
+            </div>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main>
+
+            <!-- SECCIÓN 1: Invitación Oficial -->
+            <section id="briefing" class="active">
+                <h2>[01] INVITACIÓN OFICIAL</h2>
+                <div class="briefing-text">
+                    <p>
+                        𝙰𝚙𝚛𝚎𝚌𝚒𝚊𝚍𝚘𝚜 𝚖𝚒𝚎𝚖𝚋𝚛𝚘𝚜 𝚍𝚎 𝚕𝚊 𝚌𝚘𝚖𝚞𝚗𝚒𝚍𝚊𝚍 𝚌𝚒𝚎𝚗𝚝𝚒́𝚏𝚒𝚌𝚊,
+                        <br><br>
+                        𝙸𝚁𝚇𝙴𝙻 𝙴𝙽𝚃𝙴𝚁𝙿𝚁𝙸𝚂𝙴𝚂 𝚝𝚒𝚎𝚗𝚎 𝚎𝚕 𝚙𝚕𝚊𝚌𝚎𝚛 𝚍𝚎 𝚒𝚗𝚟𝚒𝚝𝚊𝚛𝚕𝚎𝚜 𝚎𝚕
+                        𝚍𝚒́𝚊 𝟹𝚗𝚍 𝚍𝚎 𝙾𝚌𝚝𝚞𝚋𝚛𝚎 𝚊 𝚕𝚊 𝚒𝚗𝚊𝚞𝚐𝚞𝚛𝚊𝚌𝚒𝚘́𝚗 𝚍𝚎 𝚜𝚞 𝚗𝚞𝚎𝚟𝚘
+                        𝚕𝚊𝚋𝚘𝚛𝚊𝚝𝚘𝚛𝚒𝚘, 𝚎𝚗 𝚎𝚕 𝚚𝚞𝚎 𝚜𝚎 𝚌𝚘𝚖𝚙𝚊𝚛𝚝𝚒𝚛𝚊́𝚗 𝚝𝚊𝚖𝚋𝚒𝚎́𝚗 𝚕𝚘𝚜
+                        𝚞́𝚕𝚝𝚒𝚖𝚘𝚜 𝚊𝚟𝚊𝚗𝚌𝚎𝚜 𝚍𝚎 𝚜𝚞 𝚒𝚗𝚟𝚎𝚜𝚝𝚒𝚐𝚊𝚌𝚒𝚘́𝚗 𝚜𝚘𝚋𝚛𝚎 𝚕𝚊
+                        𝚎𝚜𝚙𝚎𝚛𝚊𝚗𝚣𝚊 𝚍𝚎 𝚟𝚒𝚍𝚊.
+                        <br><br>
+                        𝙻𝚎𝚜 𝚛𝚘𝚐𝚊𝚖𝚘𝚜 𝚚𝚞𝚎 𝚌𝚘𝚗𝚏𝚒𝚛𝚖𝚎𝚗 𝚜𝚞 𝚊𝚜𝚒𝚜𝚝𝚎𝚗𝚌𝚒𝚊 𝚎𝚗 𝚌𝚞𝚊𝚗𝚝𝚘
+                        𝚜𝚎𝚙𝚊𝚗 𝚜𝚞 𝚍𝚒𝚜𝚙𝚘𝚗𝚒𝚋𝚒𝚕𝚒𝚍𝚊𝚍 𝚢 𝚚𝚞𝚎 𝚎𝚗 𝚌𝚊𝚜𝚘 𝚍𝚎 𝚊𝚌𝚞𝚍𝚒𝚛
+                        𝚜𝚒𝚐𝚊𝚗 𝚎𝚕 𝚙𝚛𝚘𝚝𝚘𝚌𝚘𝚕𝚘 𝚜𝚊𝚗𝚒𝚝𝚊𝚛𝚒𝚘 𝚚𝚞𝚎 𝚜𝚎 𝚕𝚎𝚜 𝚎𝚗𝚟𝚒𝚊𝚛𝚊́
+                        𝚊𝚗𝚝𝚎𝚜 𝚍𝚎 𝚕𝚊 𝚏𝚎𝚌𝚑𝚊. 𝙴𝚜𝚙𝚎𝚛𝚊𝚖𝚘𝚜 𝚙𝚘𝚍𝚎𝚛 𝚌𝚘𝚗𝚝𝚊𝚛 𝚌𝚘𝚗 𝚜𝚞
+                        𝚙𝚛𝚎𝚜𝚎𝚗𝚌𝚒𝚊.
+                    </p>
+                    <br>
+                    <p>
+                        𝙲𝚘𝚛𝚍𝚒𝚊𝚕𝚖𝚎𝚗𝚝𝚎,
+                        <br>
+                        𝙸𝚁𝚇𝙴𝙻 𝙴𝙽𝚃𝙴𝚁𝙿𝚁𝙸𝚂𝙴𝚂, 𝙲𝚛𝚎𝚊𝚗𝚍𝚘 𝚏𝚞𝚝𝚞𝚛𝚘𝚜 𝚖𝚎𝚓𝚘𝚛𝚎𝚜 𝚍𝚎𝚜𝚍𝚎
+                        𝟷𝟿𝟷𝟽.
+                    </p>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 2: Protocolo Vestuario -->
+            <section id="protocolo">
+                <h2>[02] CÓDIGO DE INDUMENTARIA (PROTOCOLO VESTUARIO)</h2>
+                <p>DE: IRMA BINOUX / HEAD OF WARDROBE DEPT.</p>
+
+                <div class="report-section">
+                    <h3>INFORME VESTUARIO #001: MÉTODOS DE PROCURACIÓN (Presencial)</h3>
+                    <p>Categoría: Ropa, Complementos. Tipo: Segunda mano.</p>
+                    <p><strong>Notas:</strong> Gran variedad y precios bajos con rebajas adjuntas. Se recomienda moverse
+                        por zonas de Vintage y visitar tiendas que ofrecen prendas nuevas a menudo. Ver
+                        establecimientos recomendados en el informe original.</p>
+                    <a href="./resources/Humana.jpeg" target="_blank">[DESCARGAR INFORME COMPLETO - Humana.jpeg]</a>
+                </div>
+
+                <div class="report-section">
+                    <h3>INFORME VESTUARIO #002: VINTED (Online)</h3>
+                    <p>Categoría: Ropa, Objetos, Complementos. Tipo: Segunda mano.</p>
+                    <p><strong>Notas:</strong> Ideal para encontrar piezas específicas. Integrado con funcionalidad de
+                        búsqueda avanzada. ATENCIÓN: El envío puede ser lento; planificar con antelación.</p>
+                    <a href="./resources/Vinted.jpeg" target="_blank">[DESCARGAR INFORME COMPLETO - Vinted.jpeg]</a>
+                </div>
+
+                <div class="report-section">
+                    <h3>INFORME VESTUARIO #003: INTERCAMBIO / PRÉSTAMO (Chat grupal)</h3>
+                    <p>Categoría: Ropa, Objetos, Complementos. Rango Precio: Gratis.</p>
+                    <p><strong>Notas:</strong> Se ha facilitado un chat para intercambio/préstamo de objetos y
+                        materiales. IMPORTANTE: <b>NO desvelen su atuendo</b> a todo el mundo antes de la gran noche.
+                        Mantener el efecto sorpresa.</p>
+                    <a href="./resources/Inter.jpeg" target="_blank">[DESCARGAR INFORME COMPLETO - Inter.jpeg]</a>
+                </div>
+
+                <div class="alert-box">
+                    <p>&#9888; <b>ADVERTENCIA DE SEGURIDAD:</b> El Protocolo Sanitario requiere la máxima higiene en el
+                        vestuario para minimizar la diseminación de agentes patógenos. Se exige la indumentaria de
+                        segunda mano como medida preventiva y de control de recursos.</p>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 3: Programa de Avances -->
+            <section id="programa">
+                <h2>[03] PROGRAMA DE AVANCES (CALENDARIO DE ACTIVIDADES)</h2>
+                <p>Fecha: 31/10/2025. Horario estimado de inicio: 20:30h.</p>
+
+                <ul>
+                    <li class="list-item-program">**20:30h - ACCESO Y RECEPCIÓN:** Verificación de Protocolo (Vestuario)
+                        y Asignación de Placas de Identificación.</li>
+                    <li class="list-item-program">**21:30h - EXPOSICIÓN DE MUESTRAS:** Degustación de Aportaciones (Ver
+                        [04]).</li>
+                    <li class="list-item-program">**22:30h - AVANCES EN BIOLOGÍA SINTÉTICA:** Discurso de Apertura y
+                        Presentación del Nuevo Laboratorio.</li>
+                    <li class="list-item-program">**00:00h - FASE 4: EXPERIMENTACIÓN SOCIAL:** Actividad lúdica
+                        interactiva de alto riesgo.</li>
+                    <li class="list-item-program">**01:00h - DANZA DE CÉLULAS:** Pista de pruebas de resistencia.</li>
+                    <li class="list-item-program">**03:00h - REPLIEGUE Y DESCONTAMINACIÓN:** Fin del evento.</li>
+                </ul>
+            </section>
+
+            <!-- SECCIÓN 4: Logística Crítica -->
+            <section id="logistica">
+                <h2>[04] LOGÍSTICA DE ACCESO Y RECURSOS</h2>
+
+                <h3>DIRECCIÓN DEL LABORATORIO (UBICACIÓN CLASIFICADA)</h3>
+                <p>
+                    <b>DIRECCIÓN:</b> Irxel Enterprises HQ. Sede BCN.
+                </p>
+                <p>
+                    <span style="color:var(--color-accent);">COORDS:</span> <a
+                        href="https://maps.app.goo.gl/2RN5VdE3shVeJ2UK6"
+                        target="_blank">[Ver Mapeado de Acceso - PROTOCOLO ZONA 4]</a>
+                </p>
+
+                <h3>APORTACIONES DE ALIMENTOS Y MATERIALES (PROTOCOLO 30-P)</h3>
+                <p>
+                    Se requiere la cooperación de todos los miembros para la Exposición de Muestras. Confirme y registre
+                    su aportación para evitar duplicidades.
+                </p>
+                <p>
+                    &#10148; REGISTRO DE APORTACIONES (DRIVE): <a
+                        href="https://docs.google.com/spreadsheets/d/1115IhQT8LdglZ0s6T3Xod6dGxSgTxroa8cvh4nN2bY4/edit?usp=sharing" target="_blank">LINK_A_REGISTRO_MUESTRAS</a>
+                </p>
+
+                <h3>DIRECTORIO DE EVIDENCIAS (POST-EVENTO)</h3>
+                <p>
+                    El material gráfico de los avances de la noche se subirá a este directorio tras la limpieza de
+                    datos.
+                </p>
+                <p>
+                    &#10148; DIRECTORIO DE FOTOS (Fase Post-Mortem): <a
+                        href="#REEMPLAZAR_CON_LINK_A_GOOGLE_PHOTOS_O_OTRA_CARPETA#"
+                        target="_blank">LINK_A_DIRECTORIO_FOTOS_CLASIFICADAS</a>
+                </p>
+            </section>
+        </main>
+
+        <!-- Footer de Escritorio -->
+        <footer class="footer-desktop">
+            <p><strong>IRXEL ENTERPRISES.</strong> Creando futuros mejores desde 1917.</p>
+            <p>Este informe contiene información confidencial. Prohibida su copia, difusión y/o uso sin autorización
+                expresa de IRXEL Enterprises.</p>
+        </footer>
+
+        <!-- Footer Móvil (Fijo abajo) -->
+        <footer class="footer-mobile">
+            <p><strong>IRXEL ENTERPRISES.</strong> Acceso Nivel Alpha.</p>
+        </footer>
+
+
+    </div>
+
+    <script>
+        // La clave de acceso requerida
+        const CORRECT_CODE = 'a';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const appContainer = document.querySelector('.app-container');
+            const codeLock = document.getElementById('code-lock');
+            const passwordInput = document.getElementById('password-input');
+            const submitButton = document.getElementById('submit-button');
+            const authForm = document.getElementById('auth-form');
+            const bootSequenceDiv = document.getElementById('boot-sequence');
+            const lockMessage = document.getElementById('lock-message');
+
+            // Secuencia de mensajes a mostrar durante la carga
+            const bootMessages = [
+                { text: "Autenticando credenciales: CÓDIGO ALPHA.", delay: 200, type: "ok" },
+                { text: "INICIANDO PROTOCOLO DE CONEXIÓN SEGURA v4.2...", delay: 500 },
+                { text: "Verificando módulos de Bioseguridad. (Module: M001_WARDROBE_CHECK)", delay: 300 },
+                { text: "Cargando componentes de interfaz de usuario. (CSS_CRT_SIM)", delay: 150 },
+                { text: "ECHO: Conexión con servidor principal: [IRXEL-PRIME-07]...", delay: 200 },
+                { text: "ESTADO DE CONEXIÓN: [OK]. Latencia: 1.4ms.", delay: 100, type: "ok" },
+                { text: "Cargando mapa de navegación y archivos de logística...", delay: 400 },
+                { text: "ADVERTENCIA: Archivo 04_LOGISTICA_CRITICA.DAT encriptado. Requiere autorización Nivel Beta.", delay: 400, type: "error" },
+                { text: "Desactivando filtros de seguridad externos. Acceso concedido a miembro de nivel ALPHA.", delay: 600, type: "ok" },
+                { text: "BIENVENIDO. ACCESO CONCEDIDO A IRXEL-OS.", delay: 100, type: "final" },
+            ];
+
+
+            // 1. Inicializa la lógica de navegación (solo se llama después del desbloqueo)
+            const initializeNavigation = () => {
+                const navLinks = document.querySelectorAll('.nav-link');
+                const sections = document.querySelectorAll('main section');
+
+                // Función para mostrar la sección activa
+                const showSection = (targetId) => {
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === targetId) {
+                            section.classList.add('active');
+                        }
+                    });
+
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.dataset.target === targetId) {
+                            link.classList.add('active');
+                        }
+                    });
+                };
+
+                // Manejar clics en los enlaces de navegación
+                navLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetId = link.dataset.target;
+                        showSection(targetId);
+                    });
+                });
+
+                // Mostrar la primera sección por defecto al cargar
+                showSection('briefing');
+            };
+
+            // 2. Ejecuta la secuencia de carga
+            const runBootSequence = (index = 0) => {
+                if (index >= bootMessages.length) {
+                    // Fin de la secuencia: ocultar pantalla de bloqueo
+                    codeLock.style.opacity = '0';
+                    codeLock.style.transition = 'opacity 1s ease-out';
+
+                    setTimeout(() => {
+                        codeLock.style.display = 'none';
+                        appContainer.classList.remove('hidden');
+                        initializeNavigation();
+                    }, 1000);
+                    return;
+                }
+
+                const messageData = bootMessages[index];
+
+                // Crea el elemento de la línea
+                const line = document.createElement('div');
+                line.textContent = messageData.text;
+                line.classList.add('boot-line');
+                if (messageData.type) {
+                    line.classList.add(messageData.type);
+                }
+
+                // Agrega la línea al contenedor
+                bootSequenceDiv.appendChild(line);
+
+                // Desplazar hacia abajo para ver el nuevo texto
+                bootSequenceDiv.scrollTop = bootSequenceDiv.scrollHeight;
+
+                // Llamar al siguiente mensaje después del retraso
+                setTimeout(() => runBootSequence(index + 1), messageData.delay);
+            };
+
+
+            // 3. Lógica de desbloqueo (inicia la secuencia de carga)
+            const unlock = () => {
+                lockMessage.textContent = 'AUTORIZACIÓN CONFIRMADA: irxel31102025';
+                authForm.style.display = 'none'; // Oculta el input y el botón
+                bootSequenceDiv.style.display = 'block'; // Muestra la consola de carga
+                passwordInput.value = ''; // Limpia el input
+
+                runBootSequence(); // Inicia la animación
+            };
+
+            // 4. Intento de desbloqueo
+            const attemptUnlock = () => {
+                const inputCode = passwordInput.value.toLowerCase().trim();
+                const errorMessageElement = document.getElementById('error-message');
+
+                if (inputCode === CORRECT_CODE) {
+                    unlock();
+                } else {
+                    errorMessageElement.textContent = 'ERROR DE AUTENTICACIÓN. Intento no autorizado registrado. Intente de nuevo.';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            };
+
+            // 5. Asignación de eventos
+            submitButton.addEventListener('click', attemptUnlock);
+            passwordInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    attemptUnlock();
+                }
+            });
+
+            // Foco inicial en el campo de contraseña
+            passwordInput.focus();
+        
+            // --- Fecha dinámica para log-stamp ---
+            const logStampEl = document.querySelector('.log-stamp');
+            if (logStampEl) {
+                const now = new Date();
+                const dias = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
+                const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+                const dd = String(now.getDate()).padStart(2, '0');
+                const mes = meses[now.getMonth()];
+                const yyyy = now.getFullYear();
+                // Mantener el prefijo LOG #... si existe
+                const existing = logStampEl.textContent || '';
+                const logMatch = existing.match(/LOG\s*#\s*([0-9A-Za-z-]+)/i);
+                const logPart = logMatch ? `LOG #${logMatch[1]}` : 'LOG';
+                logStampEl.textContent = `${logPart} | DTE: ${dd} ${mes} ${yyyy}`;
+            }
+        });
+    </script>
+</body>
+
+</html>
