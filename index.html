@@ -890,7 +890,7 @@
 
         <!-- Menú de Navegación -->
         <nav>
-            <h3>[CLASSIFIED FILES]</h3>
+            <h3>[CLASSIFIED]</h3>
             <div class="nav-list">
                 <a class="nav-link active" data-target="mission">01. Misión Confidencial</a>
                 <a class="nav-link" data-target="intel">02. Inteligencia</a>
@@ -1242,19 +1242,24 @@
             passwordInput.focus();
         
             // --- Fecha dinámica para log-stamp ---
-            const logStampEl = document.querySelector('.log-stamp');
-            if (logStampEl) {
+            // Actualiza TODOS los .log-stamp (ALPHA y CONFIDENTIAL)
+            const logStampElements = document.querySelectorAll('.log-stamp');
+            if (logStampElements.length > 0) {
                 const now = new Date();
                 const dias = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
                 const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
                 const dd = String(now.getDate()).padStart(2, '0');
                 const mes = meses[now.getMonth()];
                 const yyyy = now.getFullYear();
-                // Mantener el prefijo LOG #... si existe
-                const existing = logStampEl.textContent || '';
-                const logMatch = existing.match(/LOG\s*#\s*([0-9A-Za-z-]+)/i);
-                const logPart = logMatch ? `LOG #${logMatch[1]}` : 'LOG';
-                logStampEl.textContent = `${logPart} | DTE: ${dd} ${mes} ${yyyy}`;
+                
+                // Iterar sobre todos los elementos log-stamp
+                logStampElements.forEach(logStampEl => {
+                    // Mantener el prefijo LOG #... si existe
+                    const existing = logStampEl.textContent || '';
+                    const logMatch = existing.match(/LOG\s*#\s*([0-9A-Za-z-]+)/i);
+                    const logPart = logMatch ? `LOG #${logMatch[1]}` : 'LOG';
+                    logStampEl.textContent = `${logPart} | DTE: ${dd} ${mes} ${yyyy}`;
+                });
             }
         });
     </script>
