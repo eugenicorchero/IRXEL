@@ -39,18 +39,19 @@
             overflow-wrap: anywhere;
         }
 
-        /* Regla para mantener comportamiento de texto normal en elementos comunes. Evitamos !important */
-        p,
+        /* Regla para mantener comportamiento de texto normal en elementos comunes. 
+           Excluimos .boot-line y otros elementos que necesitan formato especial */
+        p:not(.boot-line),
         li,
         a,
-        span,
+        span:not(.boot-line):not(.prompt-prefix),
         h1,
         h2,
         h3,
         h4,
         h5,
         h6,
-        div,
+        div:not(.boot-line):not(#boot-sequence),
         section,
         main {
             white-space: normal;
@@ -387,9 +388,10 @@
 
         /* Estilos de Títulos */
         h2 {
-            font-size: 1.5em;
+            font-size: clamp(1.1rem, 2.4vw, 1.4rem); /* Responsive y fusionado */
             color: var(--color-accent);
-            margin-bottom: 15px;
+            margin-top: 8px;
+            margin-bottom: 18px;
             letter-spacing: 1px;
             border-left: 5px solid var(--color-accent);
             padding-left: 10px;
@@ -479,13 +481,6 @@
         .footer-mobile {
             display: none;
             /* Ocultar en desktop, mostrar en mobile */
-        }
-
-        /* Ajustes específicos para títulos y espaciado en secciones */
-        h2 {
-            margin-top: 8px;
-            margin-bottom: 18px;
-            font-size: clamp(1.1rem, 2.4vw, 1.4rem);
         }
 
 
@@ -596,8 +591,8 @@
                 border-left: var(--border-style);
                 border-right: var(--border-style);
                 margin: 0 10px;
-                padding-bottom: 50px;
-                /* Espacio extra para el footer fijo */
+                /* Evita que el footer fijo en móvil cubra el contenido principal */
+                padding-bottom: calc(var(--footer-height, 84px) + 20px);
             }
 
             /* FOOTER MOBILE (Fijo abajo) */
@@ -614,11 +609,6 @@
                 z-index: 10;
                 padding: 12px 14px;
                 /* más cómodo en móvil */
-            }
-
-            /* Evita que el footer fijo en móvil cubra el contenido principal */
-            main {
-                padding-bottom: calc(var(--footer-height, 84px) + 20px);
             }
 
         }
