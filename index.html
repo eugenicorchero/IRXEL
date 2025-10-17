@@ -171,6 +171,77 @@
             font-weight: bold;
         }
 
+        .boot-line.ascii {
+            color: var(--color-accent);
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 2px;
+            font-size: 1.1em;
+            text-shadow: 0 0 5px var(--color-accent);
+        }
+
+        /* Animación de parpadeo para "PRESS ENTER" */
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* Efecto Glitch para pantalla de bloqueo - Solo verde y negro */
+        @keyframes glitch {
+            0% {
+                transform: translate(0);
+                opacity: 1;
+            }
+            10% {
+                transform: translate(-3px, 2px);
+                opacity: 0.9;
+            }
+            20% {
+                transform: translate(3px, -2px);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translate(-2px, -3px);
+                opacity: 0.9;
+            }
+            40% {
+                transform: translate(2px, 3px);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translate(-3px, 1px);
+                opacity: 0.8;
+            }
+            60% {
+                transform: translate(3px, -1px);
+                opacity: 0.7;
+            }
+            70% {
+                transform: translate(-1px, 2px);
+                opacity: 0.9;
+            }
+            80% {
+                transform: translate(1px, -2px);
+                opacity: 0.8;
+            }
+            90% {
+                transform: translate(-2px, 1px);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translate(0);
+                opacity: 1;
+            }
+        }
+
+        .glitch-effect {
+            animation: glitch 0.2s infinite;
+        }
+
 
         .prompt-prefix {
             font-size: 1em;
@@ -986,10 +1057,21 @@
                 { text: "⚠️ ADVERTENCIA: Acceso a nivel CONFIDENCIAL solicitado.", delay: 500, type: "error" },
                 { text: "Verificando autorización de seguridad avanzada...", delay: 300 },
                 { text: "Escaneando protocolo biométrico. (Module: M002_ADVANCED_AUTH)", delay: 250 },
+                { text: "Descifrando capas de encriptación multinivel...", delay: 350 },
                 { text: "ECHO: Redirigiendo a servidor clasificado: [IRXEL-CLASSIFIED-01]...", delay: 200 },
                 { text: "ESTADO DE CONEXIÓN: [OK]. Encriptación: AES-256.", delay: 150, type: "ok" },
+                { text: "Inicializando protocolos de compartimentación...", delay: 300 },
+                { text: "Verificando integridad de archivos clasificados (SHA-512)...", delay: 250 },
                 { text: "Cargando archivos clasificados. Nivel de seguridad: MÁXIMO.", delay: 400 },
+                { text: "Estableciendo túnel VPN seguro con nodo oscuro...", delay: 350 },
+                { text: "Activando sistemas de contravigilancia digital...", delay: 300 },
                 { text: "ACCESO AUTORIZADO. Bienvenido, operador clasificado.", delay: 600, type: "ok" },
+                { text: "", delay: 200 },
+                { text: "█ █▀▀▄ ▀▄ ▄▀ █▀▀ █  ", delay: 150, type: "ascii" },
+                { text: "█ █▄▄▀  ▄▀▄  █▀▀ █  ", delay: 150, type: "ascii" },
+                { text: "█ █  █ ▄▀ ▀▄ █▄▄ █▄▄", delay: 150, type: "ascii" },
+                { text: "", delay: 200 },
+                { text: "SISTEMA OPERATIVO CLASIFICADO v3.7.9", delay: 300, type: "ok" },
                 { text: "PROTOCOLO CONFIDENCIAL ACTIVADO.", delay: 100, type: "final" },
             ]
         };
@@ -1043,24 +1125,60 @@
                 showSection('briefing');
             };
 
+            // Función auxiliar para mostrar el contenido final
+            const showFinalContent = () => {
+                codeLock.style.opacity = '0';
+                codeLock.style.transition = 'opacity 1s ease-out';
+
+                setTimeout(() => {
+                    codeLock.style.display = 'none';
+                    // Mostrar solo el contenedor del nivel de acceso correspondiente
+                    const targetContainer = document.querySelector(`.app-container[data-access-level="${currentAccessLevel}"]`);
+                    if (targetContainer) {
+                        targetContainer.classList.remove('hidden');
+                    }
+                    initializeNavigation();
+                }, 1000);
+            };
+
             // 2. Ejecuta la secuencia de carga
             const runBootSequence = (index = 0) => {
                 const bootMessages = BOOT_MESSAGES[currentAccessLevel];
                 
                 if (index >= bootMessages.length) {
-                    // Fin de la secuencia: ocultar pantalla de bloqueo y mostrar contenedor correspondiente
-                    codeLock.style.opacity = '0';
-                    codeLock.style.transition = 'opacity 1s ease-out';
-
-                    setTimeout(() => {
-                        codeLock.style.display = 'none';
-                        // Mostrar solo el contenedor del nivel de acceso correspondiente
-                        const targetContainer = document.querySelector(`.app-container[data-access-level="${currentAccessLevel}"]`);
-                        if (targetContainer) {
-                            targetContainer.classList.remove('hidden');
-                        }
-                        initializeNavigation();
-                    }, 1000);
+                    // Si es nivel CONFIDENCIAL, mostrar mensaje de "PRESS ENTER" y esperar
+                    if (currentAccessLevel === 'confidential') {
+                        // Añadir efecto glitch
+                        codeLock.classList.add('glitch-effect');
+                        
+                        setTimeout(() => {
+                            codeLock.classList.remove('glitch-effect');
+                            
+                            // Mostrar mensaje "PRESS ENTER"
+                            const pressEnterLine = document.createElement('div');
+                            pressEnterLine.textContent = '>>> PRESS ENTER TO CONTINUE <<<';
+                            pressEnterLine.classList.add('boot-line', 'final');
+                            pressEnterLine.style.textAlign = 'center';
+                            pressEnterLine.style.marginTop = '20px';
+                            pressEnterLine.style.animation = 'blink 1s infinite';
+                            bootSequenceDiv.appendChild(pressEnterLine);
+                            
+                            // Desplazar hacia abajo
+                            bootSequenceDiv.scrollTop = bootSequenceDiv.scrollHeight;
+                            
+                            // Esperar tecla Enter
+                            const handleEnterKey = (e) => {
+                                if (e.key === 'Enter') {
+                                    document.removeEventListener('keydown', handleEnterKey);
+                                    showFinalContent();
+                                }
+                            };
+                            document.addEventListener('keydown', handleEnterKey);
+                        }, 2000);
+                    } else {
+                        // Para ALPHA, mostrar directamente sin glitch
+                        showFinalContent();
+                    }
                     return;
                 }
 
