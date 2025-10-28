@@ -192,54 +192,24 @@
 
         /* Efecto Glitch para pantalla de bloqueo - Solo verde y negro */
         @keyframes glitch {
-            0% {
-                transform: translate(0);
-                opacity: 1;
-            }
-            10% {
-                transform: translate(-3px, 2px);
-                opacity: 0.9;
-            }
-            20% {
-                transform: translate(3px, -2px);
-                opacity: 0.7;
-            }
-            30% {
-                transform: translate(-2px, -3px);
-                opacity: 0.9;
-            }
-            40% {
-                transform: translate(2px, 3px);
-                opacity: 0.6;
-            }
-            50% {
-                transform: translate(-3px, 1px);
-                opacity: 0.8;
-            }
-            60% {
-                transform: translate(3px, -1px);
-                opacity: 0.7;
-            }
-            70% {
-                transform: translate(-1px, 2px);
-                opacity: 0.9;
-            }
-            80% {
-                transform: translate(1px, -2px);
-                opacity: 0.8;
-            }
-            90% {
-                transform: translate(-2px, 1px);
-                opacity: 0.7;
-            }
-            100% {
-                transform: translate(0);
-                opacity: 1;
-            }
+            /* Glitch: solo transform (no animar opacity para evitar que el overlay se vuelva transparente)
+               Animar la opacidad del overlay puede revelar contenido subyacente. */
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-3px, 2px); }
+            20% { transform: translate(3px, -2px); }
+            30% { transform: translate(-2px, -3px); }
+            40% { transform: translate(2px, 3px); }
+            50% { transform: translate(-3px, 1px); }
+            60% { transform: translate(3px, -1px); }
+            70% { transform: translate(-1px, 2px); }
+            80% { transform: translate(1px, -2px); }
+            90% { transform: translate(-2px, 1px); }
+            100% { transform: translate(0, 0); }
         }
 
         .glitch-effect {
             animation: glitch 0.2s infinite;
+            /* Aplicar solo transformaciones (no opacity) — se añadirá esta clase al panel .lock-content */
         }
 
 
@@ -720,11 +690,11 @@
         <nav>
             <h3>[FILE STRUCTURE]</h3>
             <div class="nav-list">
-                <a class="nav-link active" data-target="briefing">01. Invitación Oficial</a>
-                <a class="nav-link" data-target="protocolo">02. Protocolo Vestuario</a>
-                <a class="nav-link" data-target="programa">03. Programa de Avances</a>
-                <a class="nav-link" data-target="logistica">04. Logística Crítica</a>
-                <a class="nav-link" id="admin-access-link">ADMIN ACCESS</a>
+                <a href="#" class="nav-link active" data-target="briefing">01. Invitación Oficial</a>
+                <a href="#" class="nav-link" data-target="protocolo">02. Protocolo Vestuario</a>
+                <a href="#" class="nav-link" data-target="programa">03. Programa de Avances</a>
+                <a href="#" class="nav-link" data-target="logistica">04. Logística Crítica</a>
+                <a href="#" class="nav-link" id="admin-access-link">ADMIN ACCESS</a>
             </div>
 
             <!-- Panel de autenticación para ADMIN (aparece en la barra lateral cuando se solicita) -->
@@ -901,10 +871,10 @@
         <nav>
             <h3>[CLASSIFIED]</h3>
             <div class="nav-list">
-                <a class="nav-link active" data-target="mission">01. Misión Confidencial</a>
-                <a class="nav-link" data-target="intel">02. Inteligencia</a>
-                <a class="nav-link" data-target="objectives">03. Objetivos</a>
-                <a class="nav-link" data-target="resources">04. Recursos Operativos</a>
+                <a href="#" class="nav-link active" data-target="mission">01. Misión Confidencial</a>
+                <a href="#" class="nav-link" data-target="intel">02. Inteligencia</a>
+                <a href="#" class="nav-link" data-target="objectives">03. Objetivos</a>
+                <a href="#" class="nav-link" data-target="resources">04. Recursos Operativos</a>
             </div>
         </nav>
 
@@ -1096,6 +1066,8 @@
             
             // Variable para almacenar el nivel de acceso actual
             let currentAccessLevel = null;
+            // Evita registrar listeners de navegación repetidos si initializeNavigation se llama varias veces
+            let navInitialized = false;
 
             // Devuelve el contenedor overlay de boot (único lugar para boots: el overlay consola)
             const getBootSequenceDiv = () => document.getElementById('overlay-boot-sequence');
@@ -1103,7 +1075,10 @@
 
             // 1. Inicializa la lógica de navegación (solo se llama después del desbloqueo)
             const initializeNavigation = () => {
-                const navLinks = document.querySelectorAll('.nav-link');
+                // Solo enlazar a links que declaren un target (evita incluir botones especiales como ADMIN ACCESS)
+                if (navInitialized) return;
+                navInitialized = true;
+                const navLinks = document.querySelectorAll('.nav-link[data-target]');
                 const sections = document.querySelectorAll('main section');
 
                 // Función para mostrar la sección activa
@@ -1183,12 +1158,14 @@
                 if (index >= bootMessages.length) {
                     // Si el boot ha terminado: comportamiento distinto para ADMIN vs MAIN
                     const overlay = document.getElementById('code-lock');
-                    if (currentAccessLevel === 'admin') {
-                        // efecto glitch en el overlay
-                        if (overlay) overlay.classList.add('glitch-effect');
+                        if (currentAccessLevel === 'admin') {
+                        // Aplicar efecto glitch AL PANEL INTERIOR (no al overlay) para evitar que el
+                        // fondo subyacente se haga visible durante la animación
+                        const lockContentEl = overlay ? overlay.querySelector('.lock-content') : null;
+                        if (lockContentEl) lockContentEl.classList.add('glitch-effect');
 
                         setTimeout(() => {
-                            if (overlay) overlay.classList.remove('glitch-effect');
+                            if (lockContentEl) lockContentEl.classList.remove('glitch-effect');
 
                             // Mostrar mensaje "PRESS ENTER" (clicable/touch)
                             const pressEnterLine = document.createElement('div');
