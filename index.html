@@ -1154,26 +1154,46 @@
                         setTimeout(() => {
                             codeLock.classList.remove('glitch-effect');
                             
-                            // Mostrar mensaje "PRESS ENTER"
+                            // Mostrar mensaje "PRESS ENTER" (también clicable/touch para móviles)
                             const pressEnterLine = document.createElement('div');
                             pressEnterLine.textContent = '>>> PRESS ENTER TO CONTINUE <<<';
                             pressEnterLine.classList.add('boot-line', 'final');
                             pressEnterLine.style.textAlign = 'center';
                             pressEnterLine.style.marginTop = '20px';
                             pressEnterLine.style.animation = 'blink 1s infinite';
+                            pressEnterLine.setAttribute('role', 'button');
+                            pressEnterLine.tabIndex = 0;
+                            pressEnterLine.style.cursor = 'pointer';
+                            pressEnterLine.setAttribute('aria-label', 'Press enter to continue (or tap)');
                             bootSequenceDiv.appendChild(pressEnterLine);
-                            
+
                             // Desplazar hacia abajo
                             bootSequenceDiv.scrollTop = bootSequenceDiv.scrollHeight;
-                            
-                            // Esperar tecla Enter
+
+                            // Manejo de activación (Enter, click o touch)
+                            const handleActivation = (sourceEvent) => {
+                                // limpiar listeners
+                                document.removeEventListener('keydown', handleEnterKey);
+                                pressEnterLine.removeEventListener('click', handleClick);
+                                pressEnterLine.removeEventListener('touchstart', handleClick);
+                                // prevenir acciones por doble disparo
+                                try { if (sourceEvent && sourceEvent.preventDefault) sourceEvent.preventDefault(); } catch (e) {}
+                                showFinalContent();
+                            };
+
                             const handleEnterKey = (e) => {
                                 if (e.key === 'Enter') {
-                                    document.removeEventListener('keydown', handleEnterKey);
-                                    showFinalContent();
+                                    handleActivation(e);
                                 }
                             };
+
+                            const handleClick = (e) => {
+                                handleActivation(e);
+                            };
+
                             document.addEventListener('keydown', handleEnterKey);
+                            pressEnterLine.addEventListener('click', handleClick);
+                            pressEnterLine.addEventListener('touchstart', handleClick, { passive: true });
                         }, 2000);
                     } else {
                         // Para ALPHA, mostrar directamente sin glitch
