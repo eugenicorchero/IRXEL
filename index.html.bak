@@ -285,8 +285,6 @@
                 margin-left: 0;
                 width: 100%;
                 margin-top: 10px;
-                padding: 12px 18px;
-                font-size: 0.95em;
             }
 
             .terminal-prompt {
@@ -695,21 +693,32 @@
 
 <body>
 
-    <!-- Pantalla de Bloqueo (se mantiene como fallback, pero oculta por defecto) -->
-    <div id="code-lock" class="lock-screen hidden" aria-hidden="true">
+    <!-- Pantalla de Bloqueo (Inicialmente visible) -->
+    <div id="code-lock" class="lock-screen">
         <div class="lock-content">
-            <h2>[IRXEL.OS v1.1] CONSOLA DE ARRANQUE</h2>
-            <p id="lock-message">INICIANDO SECUENCIA DE BOOT...</p>
-            <div id="overlay-boot-sequence" style="max-height:60vh; overflow:auto; margin-top:12px; border-top:1px dashed var(--color-accent); padding-top:8px;">
-                <!-- Mensajes de boot (overlay) se inyectarán aquí -->
+            <h2>[IRXEL.OS v1.1] REQUIERE AUTORIZACIÓN</h2>
+            <p id="lock-message">CONSOLA DE ACCESO CLASIFICADO. INGRESE CLAVE DE PROTOCOLO.</p>
+
+            <div id="auth-form">
+                <div class="terminal-prompt">
+                    <span class="prompt-prefix">C:\IRXEL\ACCESS></span>
+                    <input type="password" id="password-input" maxlength="20" placeholder="Código de 14 caracteres">
+                    <button id="submit-button">INICIAR</button>
+                </div>
+                <div id="error-message"></div>
             </div>
+
+            <div id="boot-sequence">
+                <!-- El código de carga se inyectará aquí -->
+            </div>
+
         </div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- CONTENEDOR NIVEL MAIN - Landing público (antes: ALPHA) -->
+    <!-- CONTENEDOR NIVEL ALPHA - Acceso público/invitación -->
     <!-- ============================================================ -->
-    <div class="app-container" data-access-level="main">
+    <div class="app-container hidden" data-access-level="alpha">
         <header>
             <h1>IRXEL ENTERPRISES: GRAND LAB OPENING</h1>
             <p>PROTOCOLO DE ACCESO CLASIFICADO - NIVEL ALPHA</p>
@@ -724,29 +733,11 @@
                 <a class="nav-link" data-target="protocolo">02. Protocolo Vestuario</a>
                 <a class="nav-link" data-target="programa">03. Programa de Avances</a>
                 <a class="nav-link" data-target="logistica">04. Logística Crítica</a>
-                <a class="nav-link" id="admin-access-link">ADMIN ACCESS</a>
             </div>
-
-            <!-- Panel de autenticación para ADMIN (aparece en la barra lateral cuando se solicita) -->
-            <!-- Admin auth removed from lateral nav (shown in central area instead) -->
         </nav>
 
         <!-- Contenido Principal -->
         <main>
-
-            <!-- PANTALLA CENTRAL: admin login / messages will show here when requested -->
-            <section id="admin-login" class="hidden">
-                <h2>[ADMIN] Acceso restringido</h2>
-                <p id="admin-hint">Introduce la clave de administrador para continuar.</p>
-                <div id="auth-form">
-                    <div class="terminal-prompt">
-                        <span class="prompt-prefix">C:\IRXEL\ACCESS></span>
-                        <input type="password" id="password-input" maxlength="20" placeholder="Código de protocolo">
-                        <button id="submit-button">INICIAR</button>
-                    </div>
-                    <div id="error-message"></div>
-                </div>
-            </section>
 
             <!-- SECCIÓN 1: Invitación Oficial -->
             <section id="briefing" class="active">
@@ -890,10 +881,10 @@
     <!-- ============================================================ -->
     <!-- CONTENEDOR NIVEL CONFIDENCIAL - Acceso scaperoom -->
     <!-- ============================================================ -->
-    <div class="app-container hidden" data-access-level="admin">
+    <div class="app-container hidden" data-access-level="confidential">
         <header>
             <h1>IRXEL ENTERPRISES: ARCHIVOS CLASIFICADOS</h1>
-            <p>PROTOCOLO DE ACCESO CLASIFICADO - ADMIN</p>
+            <p>PROTOCOLO DE ACCESO CLASIFICADO - NIVEL CONFIDENCIAL</p>
             <span class="log-stamp">LOG #CLASSIFIED | DTE: 07 OCT 2025</span>
         </header>
 
@@ -1043,13 +1034,13 @@
         // Para cambiar passwords, modifica los valores aquí:
         
         const ACCESS_LEVELS = {
-            // MAIN (landing) is public — only ADMIN requires a password now.
-            'irxel': 'admin'          // Password para acceso ADMIN (antes: confidential)
+            'irxel31102025': 'alpha',        // ⚠️ CAMBIAR AQUÍ: Password para acceso ALPHA (invitación pública)
+            'irxel': 'confidential'          // ⚠️ CAMBIAR AQUÍ: Password para acceso CONFIDENCIAL (scaperoom)
         };
 
         // Mensajes de boot personalizados por nivel
         const BOOT_MESSAGES = {
-            main: [
+            alpha: [
                 { text: "Autenticando credenciales: CÓDIGO ALPHA.", delay: 200, type: "ok" },
                 { text: "INICIANDO PROTOCOLO DE CONEXIÓN SEGURA v4.2...", delay: 500 },
                 { text: "Verificando módulos de Bioseguridad. (Module: M001_WARDROBE_CHECK)", delay: 300 },
@@ -1061,7 +1052,7 @@
                 { text: "Desactivando filtros de seguridad externos. Acceso concedido a miembro de nivel ALPHA.", delay: 600, type: "ok" },
                 { text: "BIENVENIDO. ACCESO CONCEDIDO A IRXEL-OS.", delay: 100, type: "final" },
             ],
-            admin: [
+            confidential: [
                 { text: "Autenticando credenciales: CÓDIGO CLASIFICADO DETECTADO.", delay: 200, type: "ok" },
                 { text: "⚠️ ADVERTENCIA: Acceso a nivel CONFIDENCIAL solicitado.", delay: 500, type: "error" },
                 { text: "Verificando autorización de seguridad avanzada...", delay: 300 },
@@ -1092,13 +1083,11 @@
             const passwordInput = document.getElementById('password-input');
             const submitButton = document.getElementById('submit-button');
             const authForm = document.getElementById('auth-form');
+            const bootSequenceDiv = document.getElementById('boot-sequence');
             const lockMessage = document.getElementById('lock-message');
             
             // Variable para almacenar el nivel de acceso actual
             let currentAccessLevel = null;
-
-            // Devuelve el contenedor overlay de boot (único lugar para boots: el overlay consola)
-            const getBootSequenceDiv = () => document.getElementById('overlay-boot-sequence');
 
 
             // 1. Inicializa la lógica de navegación (solo se llama después del desbloqueo)
@@ -1138,59 +1127,34 @@
 
             // Función auxiliar para mostrar el contenido final
             const showFinalContent = () => {
-                // Ocultar overlay de boot
-                try {
-                    if (codeLock) {
-                        codeLock.style.opacity = '0';
-                        codeLock.style.transition = 'opacity 1s ease-out';
-                    }
-                } catch (e) {}
+                codeLock.style.opacity = '0';
+                codeLock.style.transition = 'opacity 1s ease-out';
 
                 setTimeout(() => {
-                    try {
-                        if (codeLock) {
-                            codeLock.style.display = 'none';
-                            codeLock.classList.add('hidden');
-                            codeLock.setAttribute('aria-hidden', 'true');
-                        }
-                    } catch (e) {}
-
-                    // Si estamos en ADMIN: mostrar solo el contenedor admin y ocultar MAIN
-                    if (currentAccessLevel === 'admin') {
-                        document.querySelectorAll('.app-container').forEach(c => c.classList.add('hidden'));
-                        const adminContainer = document.querySelector('.app-container[data-access-level="admin"]');
-                        if (adminContainer) adminContainer.classList.remove('hidden');
-                    } else {
-                        // MAIN: asegurarse que el MAIN está visible y ocultar ADMIN
-                        const mainContainer = document.querySelector('.app-container[data-access-level="main"]');
-                        if (mainContainer) mainContainer.classList.remove('hidden');
-                        const adminContainer = document.querySelector('.app-container[data-access-level="admin"]');
-                        if (adminContainer) adminContainer.classList.add('hidden');
+                    codeLock.style.display = 'none';
+                    // Mostrar solo el contenedor del nivel de acceso correspondiente
+                    const targetContainer = document.querySelector(`.app-container[data-access-level="${currentAccessLevel}"]`);
+                    if (targetContainer) {
+                        targetContainer.classList.remove('hidden');
                     }
-
-                    // Inicializa navegación si procede
                     initializeNavigation();
-                }, 900);
+                }, 1000);
             };
 
             // 2. Ejecuta la secuencia de carga
             const runBootSequence = (index = 0) => {
                 const bootMessages = BOOT_MESSAGES[currentAccessLevel];
-                const bootSequenceDiv = getBootSequenceDiv();
-
-                if (!bootSequenceDiv) return;
-
+                
                 if (index >= bootMessages.length) {
-                    // Si el boot ha terminado: comportamiento distinto para ADMIN vs MAIN
-                    const overlay = document.getElementById('code-lock');
-                    if (currentAccessLevel === 'admin') {
-                        // efecto glitch en el overlay
-                        if (overlay) overlay.classList.add('glitch-effect');
-
+                    // Si es nivel CONFIDENCIAL, mostrar mensaje de "PRESS ENTER" y esperar
+                    if (currentAccessLevel === 'confidential') {
+                        // Añadir efecto glitch
+                        codeLock.classList.add('glitch-effect');
+                        
                         setTimeout(() => {
-                            if (overlay) overlay.classList.remove('glitch-effect');
-
-                            // Mostrar mensaje "PRESS ENTER" (clicable/touch)
+                            codeLock.classList.remove('glitch-effect');
+                            
+                            // Mostrar mensaje "PRESS ENTER" (también clicable/touch para móviles)
                             const pressEnterLine = document.createElement('div');
                             pressEnterLine.textContent = '>>> PRESS ENTER TO CONTINUE <<<';
                             pressEnterLine.classList.add('boot-line', 'final');
@@ -1203,29 +1167,37 @@
                             pressEnterLine.setAttribute('aria-label', 'Press enter to continue (or tap)');
                             bootSequenceDiv.appendChild(pressEnterLine);
 
+                            // Desplazar hacia abajo
                             bootSequenceDiv.scrollTop = bootSequenceDiv.scrollHeight;
 
+                            // Manejo de activación (Enter, click o touch)
                             const handleActivation = (sourceEvent) => {
-                                try { if (sourceEvent && sourceEvent.preventDefault) sourceEvent.preventDefault(); } catch (e) {}
+                                // limpiar listeners
                                 document.removeEventListener('keydown', handleEnterKey);
                                 pressEnterLine.removeEventListener('click', handleClick);
                                 pressEnterLine.removeEventListener('touchstart', handleClick);
-                                // Mostrar ADMIN y ocultar MAIN
+                                // prevenir acciones por doble disparo
+                                try { if (sourceEvent && sourceEvent.preventDefault) sourceEvent.preventDefault(); } catch (e) {}
                                 showFinalContent();
                             };
 
-                            const handleEnterKey = (e) => { if (e.key === 'Enter') handleActivation(e); };
-                            const handleClick = (e) => { handleActivation(e); };
+                            const handleEnterKey = (e) => {
+                                if (e.key === 'Enter') {
+                                    handleActivation(e);
+                                }
+                            };
+
+                            const handleClick = (e) => {
+                                handleActivation(e);
+                            };
 
                             document.addEventListener('keydown', handleEnterKey);
                             pressEnterLine.addEventListener('click', handleClick);
                             pressEnterLine.addEventListener('touchstart', handleClick, { passive: true });
-                        }, 900);
+                        }, 2000);
                     } else {
-                        // MAIN: simplemente ocultar overlay y mostrar navegación
-                        try { if (overlay) overlay.style.display = 'none'; } catch (e) {}
-                        try { if (overlay) overlay.classList.add('hidden'); } catch (e) {}
-                        initializeNavigation();
+                        // Para ALPHA, mostrar directamente sin glitch
+                        showFinalContent();
                     }
                     return;
                 }
@@ -1254,24 +1226,12 @@
             // 3. Lógica de desbloqueo (inicia la secuencia de carga)
             const unlock = (accessLevel) => {
                 currentAccessLevel = accessLevel;
-                const levelName = accessLevel === 'main' ? 'MAIN' : 'ADMIN';
-                if (lockMessage) lockMessage.textContent = `AUTORIZACIÓN CONFIRMADA: NIVEL ${levelName}`;
+                const levelName = accessLevel === 'alpha' ? 'ALPHA' : 'CONFIDENCIAL';
+                lockMessage.textContent = `AUTORIZACIÓN CONFIRMADA: NIVEL ${levelName}`;
+                authForm.style.display = 'none'; // Oculta el input y el botón
+                bootSequenceDiv.style.display = 'block'; // Muestra la consola de carga
+                passwordInput.value = ''; // Limpia el input
 
-                // Mostrar overlay de boot y su contenedor
-                try {
-                    if (codeLock) {
-                        codeLock.classList.remove('hidden');
-                        codeLock.style.display = 'flex';
-                        codeLock.setAttribute('aria-hidden', 'false');
-                    }
-                    const bs = getBootSequenceDiv();
-                    if (bs) {
-                        bs.innerHTML = '';
-                        bs.style.display = 'block';
-                    }
-                } catch (e) {}
-
-                if (passwordInput) passwordInput.value = '';
                 runBootSequence(); // Inicia la animación
             };
 
@@ -1298,52 +1258,8 @@
                 }
             });
 
-            // Foco inicial en el campo de contraseña solo en dispositivos no táctiles
-            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-            try {
-                if (!isTouchDevice) passwordInput.focus();
-            } catch (e) {
-                // fallback silencioso
-            }
-
-            // Mostrar formulario de autenticación en la parte central cuando se solicita desde la navegación
-            const adminAccessLink = document.getElementById('admin-access-link');
-            const adminLoginSection = document.getElementById('admin-login');
-            const mainSections = document.querySelectorAll('main > section');
-            if (adminAccessLink && adminLoginSection) {
-                adminAccessLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    // ocultar secciones principales y mostrar el formulario central
-                    mainSections.forEach(s => {
-                        s.classList.remove('active');
-                        try { s.style.display = 'none'; } catch (e) {}
-                    });
-
-                    // Asegurar visibilidad explícita del panel admin-login
-                    try {
-                        adminLoginSection.classList.remove('hidden');
-                        adminLoginSection.classList.add('active');
-                        adminLoginSection.style.display = 'block';
-                        adminLoginSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    } catch (err) {}
-
-                    try { if (!isTouchDevice) passwordInput.focus(); } catch (err) {}
-                });
-            }
-
-            // Iniciar el boot del MAIN (landing) en overlay al cargar la página
-            try {
-                currentAccessLevel = 'main';
-                // mostrar overlay y lanzar boot en él
-                if (codeLock) {
-                    codeLock.classList.remove('hidden');
-                    codeLock.style.display = 'flex';
-                    codeLock.setAttribute('aria-hidden', 'false');
-                }
-                const bs = getBootSequenceDiv();
-                if (bs) bs.innerHTML = '';
-                runBootSequence();
-            } catch (e) { /* noop */ }
+            // Foco inicial en el campo de contraseña
+            passwordInput.focus();
         
             // --- Fecha dinámica para log-stamp ---
             // Actualiza TODOS los .log-stamp (ALPHA y CONFIDENTIAL)
