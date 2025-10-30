@@ -26,23 +26,7 @@
             /* Reducido para mejor aspecto */
         }
 
-        /* Load local Eurostile Extended font for main headers (placed in /fonts/) */
-        @font-face {
-            font-family: 'Eurostile Extended';
-            src: url('fonts/EurostileExtendedBlack.ttf') format('truetype');
-            /* Provide both a normal and heavy mapping to maximize browser matching */
-            font-weight: 700 900;
-            font-style: normal;
-            font-display: swap;
-        }
-        /* Also register a fallback mapping for normal weight in case the renderer requests 400 */
-        @font-face {
-            font-family: 'Eurostile Extended';
-            src: url('fonts/EurostileExtendedBlack.ttf') format('truetype');
-            font-weight: 600;
-            font-style: normal;
-            font-display: swap;
-        }
+        /* Local Eurostile Extended font removed — using site fonts only */
 
         * {
             box-sizing: border-box;
@@ -351,10 +335,10 @@
 
         /* Target h1 inside header (main page headers) to ensure specificity and avoid accidental overrides */
         header h1 {
-            /* Use local Eurostile Extended for main headers — include alternative family name as fallback */
-            font-family: 'Eurostile Extended', 'EurostileExtendedBlack', var(--font-title);
-            /* Use heavy weight to match the provided Black file */
-            font-weight: 900;
+            /* Use site-provided title font (removed local Eurostile) */
+            font-family: var(--font-title);
+            /* Use a strong weight suitable for display headings */
+            font-weight: 700;
             color: var(--color-accent);
             font-size: clamp(1rem, 3.2vw, 2rem);
             /* limitar máximo para evitar solapamientos */
